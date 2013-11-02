@@ -7,11 +7,9 @@ var express = require('express'),
   routes = require('./routes'),
   http = require('http'),
   path = require('path'),
-  dotenv = require('dotenv')(),
   app = express(),
   RedisStore = require('connect-redis')(express),
-  logger = require('bunyan').createLogger({name: 'getapm.io'});
-dotenv.load();
+  logger = require('bunyan').createLogger({name: process.env.APPNAME});
 
 app.configure(function () {
   app.set('port', process.env.PORT || 3000);
