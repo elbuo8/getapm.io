@@ -1,0 +1,13 @@
+extends layout
+
+block content
+  form(id='signup', method='POST', autocomplete='on', action='/user/create')
+    input(type='text', placeholder='username', name='username', autofocus, required)
+    input(type='password', placeholder='password', name='password', required, pattern='.{6,16}')
+    input(type='email', placeholder='email', name='email', required)
+    input(type='submit', value='Sign Up')
+
+  form(id='login', method='POST', autocomplete='on', action='/user/login')
+    input(type='text', placeholder='username', name='username', autofocus, required)
+    input(type='password', placeholder='password', name='password', required, pattern='.{6,16}')
+    input(type='submit', value='Log In')

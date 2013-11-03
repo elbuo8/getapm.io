@@ -8,6 +8,7 @@ var express = require('express'),
   path = require('path'),
   app = express(),
   RedisStore = require('connect-redis')(express),
+  flash = require('connect-flash'),
   logger = require('bunyan').createLogger({name: process.env.APPNAME});
 
 app.configure(function () {
@@ -21,6 +22,7 @@ app.configure(function () {
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(express.cookieParser());
+  app.use(flash());
   app.use(express.session({
     secret: process.env.SECRET,
     store: new RedisStore({

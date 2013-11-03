@@ -1,4 +1,6 @@
 
 module.exports = function (app) {
-//  console.log(app);
+  var controller = require('./../controllers/index.js')(app);
+
+  app.get('/', controller.home);
 };
