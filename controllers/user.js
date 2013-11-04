@@ -23,83 +23,72 @@ module.exports = function (app) {
     app.get('logger').error(e);
   };
 
+  var validateKeys = function (instance, keys) {
+    var validInstance = {};
+    for (var i = 0; i < keys.length; i++) {
+      if (instance.hasOwnProperty(keys[i])) {
+        validInstance[keys[i]] = instance[keys[i]];
+      }
+    }
+    return validInstance;
+  };
+
+  var encrypt = function (password, cb) {
+    bcrypt.hash(password, 10, function (e, hash) {
+      cb(e, hash);
+    });
+  };
+
+  var users = app.get('db').collection('user');
+
   return {
     create: function (req, res) {
       var user = validateKeys(req.body, Object.keys(UserSchema.properties));
       var errors = v.validate(user, UserSchema).errors;
       if (errors.length > 0) {
-        res.json({status: 200, errors: errors});
+        return res.json(200, {errors: errors});
       }
       encrypt(user.password, function (e, hash) {
         if (e) {
           logError(e);
-          res.json({status: 500});
+          return res.json(500);
         }
         user.password = hash;
-        app.get('db').collection('user', function (e, collection) {
+        users.insert(user, function (e) {
           if (e) {
             logError(e);
-            res.json({status: 500});
+            res.json(500);
           }
-          collection.insert(user, function (e) {
-            if (e) {
-              logError(e);
-              res.json({status: 500});
-            }
-            delete user.password;
-            req.session.user = user;
-            res.json({status: 200});
-          });
+          delete user.password;
+          req.session.user = user;
+          return res.json(200, {user: user});
         });
       });
     },
     login: function (req, res) {
       credentials = req.body;
-      if (!credentials.hasOwnProperty('username') || !credentials.hasOwnProperty('password')) {
-        res.json({status: 400, errors: 'Missing email and/or password'});
+      if (req.param('username') === undefined || req.param('password') === undefined) {
+        return res.json(400, {errors: ['Missing email and/or password']});
       }
       encrypt(credentials.password, function (e, hash) {
         credentials.password = hash;
-        app.get('db').collection('user', function (e, collection) {
+        users.findOne(credentials, {password: 0}, function (e, user) {
           if (e) {
             logError(e);
-            res.json({status: 500});
+            return res.json(500);
           }
-          collection.findOne(credentials, {password: 0}, function (e, user) {
-            if (e) {
-              logError(e);
-              res.json({status: 500});
-            }
-            if (user) {
-              req.session.user = user;
-              res.json({status: 200});
-            }
-            res.json({status: 400, errors: 'Wrong username/password'});
-          });
+          if (user) {
+            req.session.user = user;
+            res.json(200, {user: user});
+          }
+          res.json(404, {errors: ['Wrong username/password']});
         });
       });
     },
     logout: function (req, res) {
       delete req.session.user;
       req.session.destroy();
-      res.json({status: 200});
+      res.json(200);
     }
   };
 };
-
-var validateKeys = function (instance, keys) {
-  var validInstance = {};
-  for (var i = 0; i < keys.length; i++) {
-    if (instance.hasOwnProperty(keys[i])) {
-      validInstance[keys[i]] = instance[keys[i]];
-    }
-  }
-  return validInstance;
-};
-
-var encrypt = function (password, cb) {
-  bcrypt.hash(password, 10, function (e, hash) {
-    cb(e, hash);
-  });
-};
-

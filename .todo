@@ -1,3 +1,6 @@
 TODO:
 
 Make routing agnostic to the controller by using a function that maps by names
+
+implement regex for the versions x.x.x
+validate q sea un .tarfile
