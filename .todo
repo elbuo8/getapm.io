@@ -1,6 +1,12 @@
 TODO:
 
-Make routing agnostic to the controller by using a function that maps by names
+Make routing agnostic to the controller by using a function that maps by names - meh
+
+Make routes restfulish.
+Organize model logic.
+
+Registration -> validate email on regex.
+
 
 implement regex for the versions x.x.x
 validate q sea un .tarfile
