@@ -1,4 +1,4 @@
-
+var semver = require('semver');
 
 module.exports = function (app) {
 
@@ -11,7 +11,15 @@ module.exports = function (app) {
         return res.json(400, {errors: ['Missing username and/or password']});
       }
       if (req.files === undefined || req.files.playbook === undefined) {
-        return res.json(400, {errors: 'Missing playbook'});
+        return res.json(400, {errors: ['Missing playbook']});
+      }
+      var playbook = playbookModel.sanitize(req.body);
+      var errors = playbookModel.validate(playbook);
+      if (errors.length > 0) {
+        return res.json(400, {errors: errors});
+      }
+      if(semver.valid(req.param('version')) === null) {
+        return res.json(400, {errors: ['Invalid version format']});
       }
       var credentials = {
         username: req.param('username'),
@@ -24,14 +32,13 @@ module.exports = function (app) {
         if (!user) {
           return res.json(404, {errors: ['No user found']});
         }
-        var playbook = playbookModel.sanitize(req.body);
-        var errors = playbookModel.validate(playbook);
-        if (errors.length > 0) {
-          return res.json(400, {errors: errors});
-        }
         playbookModel.findPlaybookByName(playbook.name, function (e, existingPlay) {
           if (e) {
             return res.json(500);
+          }
+          var currentVersion = existingPlay.versions[existingPlay.versions.length - 1].version;
+          if (existingPlay && semver.gt(currentVersion, playbook.version) ) {
+            return res.json(401, {errors: ['Version needs to be higher than:' + currentVersion]});
           }
           if (existingPlay && existingPlay.author !== playbook.author) {
             return res.json(401, {errors: ['You don\'t manage this playbook']});
@@ -49,12 +56,15 @@ module.exports = function (app) {
               if (e) {
                 return res.json(500);
               }
-              userModel.addPlaybook(user._id, playbook.name, function (e) {
-                if (e) {
-                  return res.json(500);
-                }
-                return res.json(200);
-              });
+              if (user.playbooks.indexOf(playbook.name) === -1) {
+                userModel.addPlaybook(user._id, playbook.name, function (e) {
+                  if (e) {
+                    return res.json(500);
+                  }
+                  return res.json(200);
+                });
+              }
+              return res.json(200);
             });
           });
         });
@@ -74,12 +84,12 @@ module.exports = function (app) {
     downloadPlaybook: function (req, res) {
       playbookModel.findPlaybookByName(req.param('name'), function (e, playbook) {
         if (e) {
-          return res.json({status: 500});
+          return res.json(500);
         }
         if (!playbook) {
-          return res.json({status: 404, errors: ['No such playbook']});
+          return res.json(404, {errors: ['No such playbook']});
         }
-        var _id = playbook.versions[0]._id;
+        var _id = playbook.versions[playbook.versions.length - 1]._id;
         if (req.param('version') !== undefined) {
           for (var i = 0; i < playbook.versions.length; i++) {
             if (playbook.versions[i].version === req.param('version')) {

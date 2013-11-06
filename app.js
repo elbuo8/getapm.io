@@ -22,6 +22,7 @@ app.configure(function () {
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(express.cookieParser());
+  app.use(require('express-validator')());
   app.use(flash());
   app.use(express.session({
     secret: process.env.SECRET,

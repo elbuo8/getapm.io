@@ -1,3 +1,4 @@
+var async = require('async');
 
 module.exports = function (app) {
 
@@ -10,12 +11,43 @@ module.exports = function (app) {
       if (errors.length > 0) {
         return res.json(400, {errors: errors});
       }
-      userModel.createUser(user, function (e, user) {
-        if (e) {
-          return res.json(500);
+      req.checkBody('email', 'valid email is required').isEmail();
+      errors = req.validationErrors(true);
+      if (errors.length > 0) {
+        return res.json(400, {errors: errors});
+      }
+      async.parallel({
+        username: function (cb) {
+          userModel.findUserByUsername(user.username, function (e, user) {
+            return cb(e, user);
+          });
+        },
+        email: function (cb) {
+          userModel.findUserByEmail(user.email, function (e, user) {
+            return cb(e, user);
+          });
         }
-        req.session.user = user;
-        return res.json(200, {user: user});
+      }, function (e, exists) {
+        if (e) {
+          res.json(500);
+        }
+        var errors = [];
+        if (exists.username) {
+          errors.push('Username already in use');
+        }
+        if (exists.email) {
+          errors.push('Email already in use');
+        }
+        if (errors.length > 0) {
+          return res.json(400, {errors: errors});
+        }
+        userModel.createUser(user, function (e, user) {
+          if (e) {
+            return res.json(500);
+          }
+          req.session.user = user;
+          return res.json(200, {user: user});
+        });
       });
     },
     login: function (req, res) {

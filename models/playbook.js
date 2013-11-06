@@ -51,7 +51,7 @@ module.exports = function (app) {
       });
     },
     newPlaybook: function (playbook, version, cb) {
-      playbooks.update(playbook, {$push: {versions: version}}, {upsert: true}, function (e) {
+      playbooks.update({name: playbook.name}, {$push: {versions: version}, $set: playbook}, {upsert: true}, function (e) {
         if (e) {
           helpers.logError(e);
         }
@@ -60,6 +60,14 @@ module.exports = function (app) {
     },
     playbookDownload: function (_id) {
       return gfs.createReadStream({_id: _id});
+    },
+    findLastPlaybookVersion: function (name, cb) {
+      playbooks.findOne({name: name}, {versions: {$slice: -1}}, function (e, version) {
+        if (e) {
+          helpers.logError(e);
+        }
+        return cb(e, version);
+      });
     }
   };
 };

@@ -1,3 +1,4 @@
+'use strict';
 var v = new (require('jsonschema').Validator)();
 
 module.exports = function (app) {
@@ -48,17 +49,18 @@ module.exports = function (app) {
       });
     },
     authUser: function (credentials, cb) {
-      helpers.encrypt(credentials.password, function (e, hash) {
+      users.findOne({username: credentials.username}, function (e, user) {
         if (e) {
           helpers.logError(e);
-          return cb(e, null);
         }
-        credentials.password = hash;
-        users.findOne(credentials, {password: 0}, function (e, user) {
+        helpers.compare(credentials.password, user.password, function (e, isAuth) {
           if (e) {
             helpers.logError(e);
           }
-          return cb(e, user);
+          if (isAuth) {
+            return cb(e, user);
+          }
+          return cb(e, null);
         });
       });
     },
@@ -68,6 +70,22 @@ module.exports = function (app) {
           helpers.logError(e);
         }
         return cb(e);
+      });
+    },
+    findUserByUsername: function (username, cb) {
+      users.findOne({username: username}, function (e, user) {
+        if (e) {
+          helpers.logError(e);
+        }
+        return cb(e, user);
+      });
+    },
+    findUserByEmail: function (email, cb) {
+      users.findOne({email: email}, function (e, user) {
+        if (e) {
+          helpers.logError(e);
+        }
+        return cb(e, user);
       });
     }
   };
