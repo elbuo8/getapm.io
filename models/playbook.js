@@ -68,6 +68,15 @@ module.exports = function (app) {
         }
         return cb(e, version);
       });
+    },
+    searchPlaybooks: function (query, cb) {
+      query = new RegExp(query);
+      playbooks.find({$or: [{name: query}, {description: query}]}, {versions: 0}, function (e, playbooks) {
+        if (e) {
+          helpers.logError(e);
+        }
+        return cb(e, playbooks);
+      });
     }
   };
 };

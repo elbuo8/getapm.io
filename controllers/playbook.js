@@ -36,9 +36,12 @@ module.exports = function (app) {
           if (e) {
             return res.json(500);
           }
-          var currentVersion = existingPlay.versions[existingPlay.versions.length - 1].version;
-          if (existingPlay && semver.gt(currentVersion, playbook.version) ) {
-            return res.json(401, {errors: ['Version needs to be higher than:' + currentVersion]});
+
+          if (existingPlay && existingPlay.versions !== undefined) {
+            var currentVersion = existingPlay.versions[existingPlay.versions.length - 1].version;
+            if (semver.gt(currentVersion, playbook.version)) {
+              return res.json(401, {errors: ['Version needs to be higher than:' + currentVersion]});
+            }
           }
           if (existingPlay && existingPlay.author !== playbook.author) {
             return res.json(401, {errors: ['You don\'t manage this playbook']});
@@ -71,6 +74,9 @@ module.exports = function (app) {
       });
     },
     getPlaybook: function (req, res) {
+      if (req.param('name') === undefined) {
+        return res.json(400, {errors: ['No name specified']});
+      }
       playbookModel.findPlaybookByName(req.param('name'), function (e, playbook) {
         if (e) {
           return res.json(500);
@@ -82,6 +88,9 @@ module.exports = function (app) {
       });
     },
     downloadPlaybook: function (req, res) {
+      if (req.param('name') === undefined) {
+        return res.json(400, {errors: ['No name specified']});
+      }
       playbookModel.findPlaybookByName(req.param('name'), function (e, playbook) {
         if (e) {
           return res.json(500);
@@ -100,16 +109,15 @@ module.exports = function (app) {
         }
         return playbookModel.playbookDownload(_id).pipe(res);
       });
-    } /*,
-    searchPlaybook: function (req, res) {
-      //this method NEEDS A SHIT TON OF WORK.
-      playbooks.find(req.body, function (e, playbooks) {
+    },
+    searchPlaybooks: function (req, res) {
+      playbookModel.searchPlaybooks(req.param('query'), function (e, playbooks) {
         if (e) {
           logError(e);
           return res.json(500);
         }
         return res.json(200, playbooks);
       });
-    }*/
+    }
   };
 };

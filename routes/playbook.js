@@ -6,9 +6,8 @@ module.exports = function (app) {
 
   app.post('/playbook', controller.savePlaybook);
   app.put('/playbook', controller.savePlaybook);
-  app.get('/playbook/:name', controller.getPlaybook);
-
-
-  app.get('/playbook/download/:name/version?/:version', controller.downloadPlaybook);
+  app.get('/playbook/download/:name/version/:version?', controller.downloadPlaybook);
+  app.get('/playbook/download/:name', controller.downloadPlaybook);
+  app.get('/playbook/:name?', controller.getPlaybook);
   //app.post('/playbook/search/:query', controller.searchPlaybook);
 };
