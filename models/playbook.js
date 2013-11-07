@@ -71,11 +71,11 @@ module.exports = function (app) {
     },
     searchPlaybooks: function (query, cb) {
       query = new RegExp(query);
-      playbooks.find({$or: [{name: query}, {description: query}]}, {versions: 0}, function (e, playbooks) {
+      playbooks.find({$or: [{name: query}, {description: query}]}, {versions: 0}).toArray(function (e, results) {
         if (e) {
           helpers.logError(e);
         }
-        return cb(e, playbooks);
+        return cb(e, results);
       });
     }
   };

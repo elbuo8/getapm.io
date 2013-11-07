@@ -116,7 +116,10 @@ module.exports = function (app) {
           logError(e);
           return res.json(500);
         }
-        return res.json(200, playbooks);
+        if (playbooks) {
+          return res.json(200, playbooks);
+        }
+        return res.json(404, {errors: ['No playbooks found']});
       });
     }
   };
