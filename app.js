@@ -9,7 +9,7 @@ var express = require('express'),
   app = express(),
   RedisStore = require('connect-redis')(express),
   flash = require('connect-flash'),
-  logger = require('bunyan').createLogger({name: process.env.APPNAME});
+  logger = require('bunyan').createLogger({name: process.env.APPNAME, path: './apm.log'});
 
 app.configure(function () {
   app.set('port', process.env.PORT || 3000);
@@ -52,7 +52,6 @@ require('mongodb').MongoClient.connect(process.env.MONGODB_URL,
     app.set('db', db);
     // Initialize router
     require('fs').readdirSync(__dirname + '/routes').forEach(function (file) {
-      logger.info('Initializing: ', file);
       require(__dirname + '/routes/' + file)(app);
     });
   });

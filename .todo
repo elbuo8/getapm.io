@@ -2,16 +2,11 @@ TODO:
 
 Make routing agnostic to the controller by using a function that maps by names - meh
 
-better error management on the python end
-si hacen get en el root, debe meterse en roles
+better error management on the python end 4
 make video of instance deployment
-make sure q .git no se cuele
 make the apm a global thingy
-read el apm.yml y bajar los deps usando get
-apm init debe create el apm.yml tambn
 
 write los readme files
 
-remove logging messages
-add welcome screen con download en pip
+add welcome screen con download en pip - ryan
 validate q sea un .tarfile
